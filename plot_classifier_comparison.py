@@ -82,28 +82,36 @@ datasets = [
     linearly_separable,
 ]
 
+# Create a large figure to hold all subplots (27 inches wide by 9 inches tall)
 figure = plt.figure(figsize=(27, 9))
+# Initialize subplot counter
 i = 1
-# iterate over datasets
+# iterate over datasets (moons, circles, and linearly separable)
 for ds_cnt, ds in enumerate(datasets):
     # preprocess dataset, split into training and test part
     X, y = ds
+    # Split data: 60% for training, 40% for testing with fixed random state for reproducibility
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.4, random_state=42
     )
 
+    # Calculate the boundaries of the plot with some padding (0.5)
     x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
     y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
 
-    # just plot the dataset first
-    cm = plt.cm.RdBu
-    cm_bright = ListedColormap(["#FF0000", "#0000FF"])
+    # Set up the colormaps for visualization 
+    cm = plt.cm.RdBu  # Red-Blue colormap for decision boundaries
+    cm_bright = ListedColormap(["#FF0000", "#0000FF"])  # Red and Blue for discrete class labels
+    
+    # Create the first column of subplots to show the raw data
+    # This creates a subplot in a grid of len(datasets) rows and len(classifiers)+1 columns
     ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
+    # Label only the first dataset row with "Input data" title
     if ds_cnt == 0:
         ax.set_title("Input data")
-    # Plot the training points
+    # Plot the training points with solid colors (Red/Blue)
     ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright, edgecolors="k")
-    # Plot the testing points
+    # Plot the testing points with semi-transparent colors and black edges
     ax.scatter(
         X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright, alpha=0.6, edgecolors="k"
     )
@@ -115,20 +123,25 @@ for ds_cnt, ds in enumerate(datasets):
 
     # iterate over classifiers
     for name, clf in zip(names, classifiers):
+        # Create a subplot for each classifier
         ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
 
+        # Create a pipeline with data standardization and the classifier
         clf = make_pipeline(StandardScaler(), clf)
+        # Fit the classifier on the training data
         clf.fit(X_train, y_train)
+        # Evaluate the classifier on the test data
         score = clf.score(X_test, y_test)
+        # Plot the decision boundary using the trained classifier
         DecisionBoundaryDisplay.from_estimator(
             clf, X, cmap=cm, alpha=0.8, ax=ax, eps=0.5
         )
 
-        # Plot the training points
+        # Plot the training points with solid colors (Red/Blue)
         ax.scatter(
             X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright, edgecolors="k"
         )
-        # Plot the testing points
+        # Plot the testing points with semi-transparent colors and black edges
         ax.scatter(
             X_test[:, 0],
             X_test[:, 1],
@@ -138,12 +151,15 @@ for ds_cnt, ds in enumerate(datasets):
             alpha=0.6,
         )
 
+        # Set plot limits and remove axis ticks
         ax.set_xlim(x_min, x_max)
         ax.set_ylim(y_min, y_max)
         ax.set_xticks(())
         ax.set_yticks(())
+        # Label only the first row of classifier subplots with classifier names
         if ds_cnt == 0:
             ax.set_title(name)
+        # Display the accuracy score in the bottom right corner of the subplot
         ax.text(
             x_max - 0.3,
             y_min + 0.3,
@@ -153,5 +169,7 @@ for ds_cnt, ds in enumerate(datasets):
         )
         i += 1
 
+# Adjust layout to prevent overlapping of subplots
 plt.tight_layout()
+# Display the figure
 plt.show()
